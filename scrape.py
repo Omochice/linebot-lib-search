@@ -1,4 +1,3 @@
-import requests
 from bs4 import BeautifulSoup
 from typing import Dict, Iterable, Tuple
 import time
@@ -29,8 +28,10 @@ class Scraper:
 
     def find_book_info(self) -> Iterable[Dict]:
         for book in self.soup.select(".result-row"):
+            include_nobreakspace = book.find(class_="xc-title").get_text().split(
+                ".", maxsplit=1)[-1].strip()
             book_status = {
-                "title": book.find(class_="xc-title").get_text().split(".")[-1].strip(),
+                "title": re.sub(r"\xa0", " ", include_nobreakspace),
                 "loanable": False,
                 "location": [],
             }
@@ -42,7 +43,11 @@ class Scraper:
                     br.replace_with("\n")
                 condition = re.sub(r"他の [0-9]+ 件を見る隠す", "\n", status.text).split("\n")
                 for row in condition:
-                    cond, loc = row.split(",", maxsplit=1)
+                    try:
+                        cond, loc = row.split(",", maxsplit=1)
+                    except Exception:
+                        print("loading がはいっている")
+                        continue
                     if cond.strip() == "貸出可":
                         book_status["loanable"] = True
                         book_status["location"].append(loc)
@@ -50,6 +55,8 @@ class Scraper:
 
 
 if __name__ == "__main__":
+    import sys
+    querystr = sys.argv[1]
     client = Scraper()
-    for res in client.scrape("ruby"):
+    for res in client.scrape(querystr):
         print(res)
