@@ -4,13 +4,17 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from pathlib import Path
+import os
 import yaml
 
-with open(Path(__file__).parent / "config.yaml") as f:
-    config = yaml.safe_load(f)
+# with open(Path(__file__).parent / "config.yaml") as f:
+#     config = yaml.safe_load(f)
+#
+# line_bot_api = LineBotApi(config["access_token"])
+# handler = WebhookHandler(config["channel_secret"])
+line_bot_api = LineBotApi(os.environ["ACCESS_TOKEN"])
+handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 
-line_bot_api = LineBotApi(config["access_token"])
-handler = WebhookHandler(config["channel_secret"])
 api = responder.API()
 
 
