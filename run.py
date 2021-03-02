@@ -25,6 +25,8 @@ def index(req, resp):
 
 @api.route("/endpoint")
 async def endpoint(req, resp):
+    with open("log.log", "a") as f:
+        print(req.method)
     if req.method != "post":
         resp.status = 400
     signature = req.headers["X-Line-Signature"]
