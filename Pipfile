@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 bs4 = "*"
 selenium = "*"
+responder = "*"
+pyyaml = "*"
+line-bot-sdk = "*"
 
 [dev-packages]
 ipython = "*"
