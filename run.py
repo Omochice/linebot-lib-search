@@ -18,6 +18,11 @@ handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 api = responder.API()
 
 
+@api.route("/")
+def index(req, resp):
+    resp.text = req.method
+
+
 @api.route("/endpoint")
 async def endpoint(req, resp):
     if req.method != "post":
