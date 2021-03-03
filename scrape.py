@@ -10,7 +10,6 @@ from selenium.webdriver.support import ui, expected_conditions
 class Scraper:
     def __init__(self) -> None:
         self.url = "http://opc.ul.hirosaki-u.ac.jp/opc/xc/search/"
-        self._setup()
 
     def _setup(self):
         options = webdriver.ChromeOptions()
@@ -18,13 +17,16 @@ class Scraper:
         self.driver = webdriver.Chrome(options=options)
 
     def scrape(self, query: str) -> Tuple[Dict]:
+        self._setup()
         self.driver.get(self.url + query)
         # ui.WebDriverWait(self.driver,
         #                  10).until(expected_conditions.presence_of_all_elements_located)
         time.sleep(4)    # 日本語英語切り替えで遅延が必要, 2秒だとloading...になったりする
         r = self.driver.page_source.encode("utf-8")
         self.soup = BeautifulSoup(r)
-        return tuple(self.find_book_info())
+        rst = tuple(self.find_book_info())
+        self.driver.quit()
+        return rst
 
     def find_book_info(self) -> Iterable[Dict]:
         for book in self.soup.select(".result-row"):
