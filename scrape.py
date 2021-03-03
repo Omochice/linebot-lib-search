@@ -14,6 +14,8 @@ class Scraper:
     def _setup(self):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shim-usage")
         self.driver = webdriver.Chrome(options=options)
 
     def scrape(self, query: str) -> Tuple[Dict]:
