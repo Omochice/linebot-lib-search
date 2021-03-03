@@ -5,7 +5,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from pathlib import Path
 import os
-import yaml
+import json
 
 # with open(Path(__file__).parent / "config.yaml") as f:
 #     config = yaml.safe_load(f)
@@ -34,11 +34,13 @@ async def endpoint(req, resp):
     print(req.method)
     print(req.headers)
     body = await req.media()
+    body = json.dumps(body, ensure_ascii=False).replace(" ", "")
 
     try:
         handler.handle(body, signature)
+        resp.status_code = 200
     except InvalidSignatureError:
-        resp.status = 400
+        resp.status_code = 400
 
     # なんやかんやで調べる本の名前を取り出す
 
