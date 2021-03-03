@@ -26,6 +26,7 @@ class Scraper:
         self.soup = BeautifulSoup(r)
         rst = tuple(self.find_book_info())
         self.driver.quit()
+        print(rst)
         return rst
 
     def find_book_info(self) -> Iterable[Dict]:

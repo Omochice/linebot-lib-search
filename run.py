@@ -28,8 +28,8 @@ async def endpoint(req, resp):
         resp.status = 400
     signature = req.headers["X-Line-Signature"]
 
-    print(req.method)
-    print(req.headers)
+    # print(req.method)
+    # print(req.headers)
     body = await req.media()
     body = json.dumps(body, ensure_ascii=False).replace(" ", "")
 
