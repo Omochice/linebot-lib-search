@@ -9,6 +9,7 @@ selenium = "*"
 responder = "*"
 pyyaml = "*"
 line-bot-sdk = "*"
+gunicorn = "*"
 
 [dev-packages]
 ipython = "*"
