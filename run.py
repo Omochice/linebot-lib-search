@@ -1,4 +1,5 @@
 import responder
+from scrape import Scraper
 
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -7,15 +8,11 @@ from pathlib import Path
 import os
 import json
 
-# with open(Path(__file__).parent / "config.yaml") as f:
-#     config = yaml.safe_load(f)
-#
-# line_bot_api = LineBotApi(config["access_token"])
-# handler = WebhookHandler(config["channel_secret"])
 line_bot_api = LineBotApi(os.environ["ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 
 api = responder.API()
+# searcher = Scraper()
 
 
 @api.route("/")
@@ -52,7 +49,7 @@ async def endpoint(req, resp):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_bot_api.reply_message(event.reply_token,
-                               TextSendMessage(text=event.message.text))
+                               TextSendMessage(text=event.message.text * 2))
 
 
 if __name__ == "__main__":
