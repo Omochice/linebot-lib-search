@@ -12,7 +12,7 @@ line_bot_api = LineBotApi(os.environ["ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 
 api = responder.API()
-searcher = Scraper(os.environ["CHROME_DRIVER_PATH"])
+searcher = Scraper(os.environ["CHROME_DRIVER_PATH"], os.environ["CHROME_PATH"])
 
 
 @api.route("/")

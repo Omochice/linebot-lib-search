@@ -9,15 +9,17 @@ from selenium.webdriver.support import ui, expected_conditions
 
 
 class Scraper:
-    def __init__(self, driver_path: str) -> None:
+    def __init__(self, driver_path: str, chrome_path: str) -> None:
         self.url = "http://opc.ul.hirosaki-u.ac.jp/opc/xc/search/"
         self.driver_path = driver_path
+        self.chrome_path = chrome_path
 
     def _setup(self):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shim-usage")
+        options.binary_location = self.chrome_path
         self.driver = webdriver.Chrome(executable_path=self.driver_path,
                                        options=options)
 
