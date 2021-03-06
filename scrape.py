@@ -23,25 +23,27 @@ class Scraper:
         self.driver = webdriver.Chrome(executable_path=self.driver_path,
                                        options=options)
 
-    def scrape(self, query: str) -> Tuple[Dict]:
+    def scrape(self, query: str) -> dict:
         self._setup()
         self.driver.get(self.url + query)
         # ui.WebDriverWait(self.driver,
         #                  10).until(expected_conditions.presence_of_all_elements_located)
         time.sleep(4)    # 日本語英語切り替えで遅延が必要, 2秒だとloading...になったりする
         r = self.driver.page_source.encode("utf-8")
-        self.soup = BeautifulSoup(r)
-        rst = tuple(self.find_book_info())
+        self.soup = BeautifulSoup(r, "html.parser")
+        rst = self.find_book_info()
         self.driver.quit()
-        print(rst)
         return rst
 
-    def find_book_info(self) -> Iterable[Dict]:
+    def find_book_info(self) -> dict:
+        rst = {"n_books": self.soup.select_one(".total").get_text(), "books": []}
         for book in self.soup.select(".result-row"):
-            include_nobreakspace = book.find(class_="xc-title").get_text().split(
-                ".", maxsplit=1)[-1].strip()
+            title_a_tag = book.find(class_="xc-title")
+            include_nobreakspace = title_a_tag.get_text().split(".",
+                                                                maxsplit=1)[-1].strip()
             book_status = {
                 "title": re.sub(r"\xa0", " ", include_nobreakspace),
+                "url": title_a_tag.get("href"),
                 "loanable": False,
                 "location": [],
             }
@@ -56,12 +58,13 @@ class Scraper:
                     try:
                         cond, loc = row.split(",", maxsplit=1)
                     except Exception:
-                        print("loading がはいっている")
+                        # print("loading がはいっている")
                         continue
                     if cond.strip() == "貸出可":
                         book_status["loanable"] = True
                         book_status["location"].append(loc)
-            yield book_status
+            rst["books"].append(book_status)
+        return rst
 
 
 if __name__ == "__main__":
