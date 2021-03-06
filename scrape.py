@@ -43,7 +43,7 @@ class Scraper:
                                                                 maxsplit=1)[-1].strip()
             book_status = {
                 "title": re.sub(r"\xa0", " ", include_nobreakspace),
-                "url": title_a_tag.get("href"),
+                "url": title_a_tag.find("a").get("href"),
                 "loanable": False,
                 "location": [],
             }
