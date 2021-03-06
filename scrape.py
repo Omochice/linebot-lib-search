@@ -36,40 +36,68 @@ class Scraper:
         return rst
 
     def find_book_info(self) -> dict:
-        rst = {"n_books": self.soup.select_one(".total").get_text(), "books": []}
-        for book in self.soup.select(".result-row"):
-            title_a_tag = book.find(class_="xc-title")
-            include_nobreakspace = title_a_tag.get_text().split(".",
-                                                                maxsplit=1)[-1].strip()
-            book_status = {
-                "title": re.sub(r"\xa0", " ", include_nobreakspace),
-                "url": title_a_tag.find("a").get("href"),
-                "loanable": False,
-                "location": [],
+        try:
+            rst = {
+                "n_books": int(self.soup.select_one(".total").get_text()),
+                "books": []
             }
-            status = book.find("td", class_="xc-availability")
-            if status is None:
+        except:
+            return self._for_redirect()
+        else:
+            for book in self.soup.select(".result-row"):
+                title_a_tag = book.find(class_="xc-title")
+                include_nobreakspace = title_a_tag.get_text().split(
+                    ".", maxsplit=1)[-1].strip()
+                book_status = {
+                    "title": re.sub(r"\xa0", " ", include_nobreakspace),
+                    "url": title_a_tag.find("a").get("href"),
+                    "loanable": False,
+                    "location": [],
+                }
+                status = book.find("td", class_="xc-availability")
+                if status is None:
+                    continue
+                else:
+                    for br in status.select("br"):
+                        br.replace_with("\n")
+                    condition = re.sub(r"他の [0-9]+ 件を見る隠す", "\n",
+                                       status.text).split("\n")
+                    for row in condition:
+                        try:
+                            cond, loc = row.split(",", maxsplit=1)
+                        except Exception:
+                            # print("loading がはいっている")
+                            continue
+                        if cond.strip() == "貸出可":
+                            book_status["loanable"] = True
+                            book_status["location"].append(loc)
+                rst["books"].append(book_status)
+                return rst
+
+    def _for_redirect(self) -> dict:
+        trs = self.soup.select("tr.even")
+        loanable = False
+        location = []
+        for tr in trs:
+            book_status_tb = tr.select_one("div.bkAva.normal")
+            if book_status_tb is None:
                 continue
-            else:
-                for br in status.select("br"):
-                    br.replace_with("\n")
-                condition = re.sub(r"他の [0-9]+ 件を見る隠す", "\n", status.text).split("\n")
-                for row in condition:
-                    try:
-                        cond, loc = row.split(",", maxsplit=1)
-                    except Exception:
-                        # print("loading がはいっている")
-                        continue
-                    if cond.strip() == "貸出可":
-                        book_status["loanable"] = True
-                        book_status["location"].append(loc)
-            rst["books"].append(book_status)
+            elif book_status_tb.find("dd").get_text == "貸出可":
+                loanable = True
+                location.append(tr.select_one("div.bkLoc").find("a").get_text())
+        rst = {
+            "n_books": 1,
+            "books": [{
+                "title": self.soup.find("meta", attrs={"name": "title"}).get("content"), \
+                "url": self.soup.find("meta", property="og:url").get("content"),
+                "loanable": loanable,
+                "location": location
+            }]
+        }
         return rst
 
 
 if __name__ == "__main__":
     import sys
-    querystr = sys.argv[1]
     client = Scraper()
-    for res in client.scrape(querystr):
-        print(res)
+    print(client.scrape(sys.argv[1]))
