@@ -22,14 +22,10 @@ def index(req, resp):
 
 @api.route("/endpoint")
 async def endpoint(req, resp):
-    with open("log.log", "a") as f:
-        print(req.method)
     if req.method != "post":
         resp.status = 400
     signature = req.headers["X-Line-Signature"]
 
-    # print(req.method)
-    # print(req.headers)
     body = await req.media()
     body = json.dumps(body, ensure_ascii=False).replace(" ", "")
 
@@ -39,21 +35,28 @@ async def endpoint(req, resp):
     except InvalidSignatureError:
         resp.status_code = 400
 
-    # なんやかんやで調べる本の名前を取り出す
 
-    # fetch book info
-
-    # print(req.header)
-
-
-def construct_message():
-    pass
+def construct_message(search_rst: dict) -> str:
+    message = f"{search_rst['n_books']}件がヒットしました。\n"
+    message += "----------\n"
+    for book in search_rst["books"]:
+        if book["loanable"]:
+            loanable_text = f"貸出可\n"
+            for loc in book["location"]:
+                loanable_text += f"\t{loc}\n"
+        else:
+            loanable_text = "貸出中"
+        message += f"""{book['title']}({book['url']})
+{loanable_text}\n
+"""
+    return message
 
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     rst = searcher.scrape(event.message.text)
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{rst}"))
+    line_bot_api.reply_message(event.reply_token,
+                               TextSendMessage(text=construct_message(rst)))
 
 
 if __name__ == "__main__":
