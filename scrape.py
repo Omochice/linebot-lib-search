@@ -9,26 +9,38 @@ from selenium.webdriver.support import ui, expected_conditions
 
 
 class Scraper:
-    def __init__(self, driver_path: str, chrome_path: str) -> None:
+    def __init__(self,
+                 local_debug_mode: bool = False,
+                 driver_path: str = "",
+                 chrome_path: str = "") -> None:
         self.url = "http://opc.ul.hirosaki-u.ac.jp/opc/xc/search/"
-        self.driver_path = driver_path
-        self.chrome_path = chrome_path
+        self.debug = local_debug_mode
+        if self.debug:
+            pass
+        else:
+            self.driver_path = driver_path
+            self.chrome_path = chrome_path
 
     def _setup(self):
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shim-usage")
-        options.binary_location = self.chrome_path
-        self.driver = webdriver.Chrome(executable_path=self.driver_path,
-                                       options=options)
+        if self.debug:
+            self.driver = webdriver.Chrome(options=options)
+        else:
+            options.add_argument("--headless")
+            options.binary_location = self.chrome_path
+            self.driver = webdriver.Chrome(executable_path=self.driver_path,
+                                           options=options)
 
     def scrape(self, query: str) -> dict:
         self._setup()
         self.driver.get(self.url + query)
         # ui.WebDriverWait(self.driver,
         #                  10).until(expected_conditions.presence_of_all_elements_located)
-        time.sleep(4)    # 日本語英語切り替えで遅延が必要, 2秒だとloading...になったりする
+        # time.sleep(4)    # 日本語英語切り替えで遅延が必要, 2秒だとloading...になったりする
+        ui.WebDriverWait(self.driver, 10).until(lambda driver: driver.execute_script(
+            "return document.readyState") == "complete")
         r = self.driver.page_source.encode("utf-8")
         self.soup = BeautifulSoup(r, "html.parser")
         rst = self.find_book_info()
@@ -36,15 +48,12 @@ class Scraper:
         return rst
 
     def find_book_info(self) -> dict:
-        try:
+        if self.driver.current_url.startswith(self.url):
             rst = {
                 "n_books": int(self.soup.select_one(".total").get_text()),
                 "books": []
             }
-        except:
-            return self._for_redirect()
-        else:
-            for book in self.soup.select(".result-row"):
+            for book in self.soup.find_all(class_="result-row"):
                 title_a_tag = book.find(class_="xc-title")
                 include_nobreakspace = title_a_tag.get_text().split(
                     ".", maxsplit=1)[-1].strip()
@@ -72,7 +81,9 @@ class Scraper:
                             book_status["loanable"] = True
                             book_status["location"].append(loc)
                 rst["books"].append(book_status)
-                return rst
+            return rst
+        else:
+            return self._for_redirect()
 
     def _for_redirect(self) -> dict:
         trs = self.soup.select("tr.even")
@@ -99,5 +110,5 @@ class Scraper:
 
 if __name__ == "__main__":
     import sys
-    client = Scraper()
+    client = Scraper(local_debug_mode=True)
     print(client.scrape(sys.argv[1]))
