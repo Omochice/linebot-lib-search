@@ -1,3 +1,4 @@
+from linebot.webhook import WebhookPayload
 import responder
 from scrape import Scraper
 
@@ -37,13 +38,15 @@ async def endpoint(req, resp):
 
 
 def construct_message(search_rst: dict) -> str:
-    message = f"{search_rst['n_books']}件がヒットしました。\n"
+    if search_rst["n_books"] <= 10:
+        message = f"{search_rst['n_books']}件がヒットしました。\n"
+    else:
+        message = f"{search_rst['n_books']}件がヒットしました。(上位10件を表示中)\n"
     message += "----------\n"
     for book in search_rst["books"]:
         if book["loanable"]:
             loanable_text = f"貸出可\n"
-            for loc in book["location"]:
-                loanable_text += f"\t{loc}\n"
+            loanable_text += "\n".join(map(lambda x: f"\t{x}", book["location"]))
         else:
             loanable_text = "貸出中"
         message += f"""{book['title']}({book['url']})
