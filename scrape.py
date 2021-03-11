@@ -68,7 +68,9 @@ class Scraper:
                 }
                 status = book.find("td", class_="xc-availability")
                 if status is None:
-                    continue
+                    locate_url = book.find("tr", "xc-series").find("a").get_text()
+                    book_status["locate_url"] = locate_url
+                # urlを取得
                 else:
                     for br in status.select("br"):
                         br.replace_with("\n")

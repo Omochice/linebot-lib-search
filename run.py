@@ -49,6 +49,8 @@ def construct_message(search_rst: dict) -> str:
         if book["loanable"]:
             loanable_text = f"貸出可\n"
             loanable_text += "\n".join(map(lambda x: f"\t{x}", book["location"]))
+        elif "locate_url" in book: 
+            loanable_text = f"オンライン閲覧可能({book['locate_url']})"
         else:
             loanable_text = "貸出中"
         message += f"""{book['title']}({book['url']})
