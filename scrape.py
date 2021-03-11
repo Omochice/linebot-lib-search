@@ -49,8 +49,11 @@ class Scraper:
 
     def find_book_info(self) -> dict:
         if self.driver.current_url.startswith(self.url):
+            total_tag = self.soup.select_one(".total")
+            if total_tag is None:
+                return {"n_books": 0, "books":[]}
             rst = {
-                "n_books": int(self.soup.select_one(".total").get_text()),
+                "n_books": int(total_tag.get_text()),
                 "books": []
             }
             for book in self.soup.find_all(class_="result-row"):

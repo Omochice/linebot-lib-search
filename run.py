@@ -38,6 +38,8 @@ async def endpoint(req, resp):
 
 
 def construct_message(search_rst: dict) -> str:
+    if search_rst["n_books"] == 0:
+        message = "ヒットはありませんでした。\n"
     if search_rst["n_books"] <= 10:
         message = f"{search_rst['n_books']}件がヒットしました。\n"
     else:
