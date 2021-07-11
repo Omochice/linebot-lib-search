@@ -1,0 +1,14 @@
+name: Auto wake up
+
+on:
+  schedule:
+  - cron: "*/20 * * * *"
+
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@master
+      with:
+        args: https://libsearcher-hirodai.herokuapp.com?githubAction
